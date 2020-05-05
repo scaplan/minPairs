@@ -1,0 +1,87 @@
+form Create ambiguous f0 contour
+     sentence inputFile input
+     sentence splitDir input # directory of split stimuli
+     positive onsetf0
+     sentence outputFilename input
+endform
+
+# Spencer Caplan
+# Department of Linguistics
+# University of Pennsylvania
+
+editpointOne = 0.040
+editpointTwo = 0.050
+editpointThree = 0.060
+editpointFour = 0.070
+editpointFive = 0.080
+editpointSix = 0.090
+editpointSeven = 0.100
+editpointEight = 0.110
+editpointNine = 0.120
+editpointTen = 0.130
+finaleditpoint = 0.140
+
+#inputdir$ = "C:\Users\Spencer\Dropbox\penn_CS_account\MinPairs\f0-manipulation\SI2"
+#outdir$ = "C:\Users\Spencer\Dropbox\penn_CS_account\MinPairs\f0-manipulation\ToscanoOutSample"
+#outdir$ = "C:\Users\Spencer\Desktop"
+
+# read files
+do("Read from file...", splitDir$+inputFile$+".wav")
+selectObject("Sound "+inputFile$)
+object_name$ = selected$("Sound")
+
+Resample... 22050 50
+
+select Sound 'object_name$'_22050
+To Manipulation... 0.01 75 600
+Extract pitch tier
+
+finalOrigPitch = Get value at time: finaleditpoint
+pitchGap = abs(onsetf0 - finalOrigPitch)
+pitchStepSize = pitchGap / 11
+pitchTwo = onsetf0 - pitchStepSize
+pitchThree = pitchTwo - pitchStepSize
+pitchFour = pitchThree - pitchStepSize
+pitchFive = pitchFour - pitchStepSize
+pitchSix = pitchFive - pitchStepSize
+pitchSeven = pitchSix - pitchStepSize
+pitchEight = pitchSeven - pitchStepSize
+pitchNine = pitchEight - pitchStepSize
+pitchTen = pitchNine - pitchStepSize
+pitchEleven = pitchTen - pitchStepSize
+
+Formula... if x < editpointOne then onsetf0 else self endif;
+Formula... if x > editpointOne then if x < editpointTwo then pitchTwo else self endif else self endif;
+Formula... if x > editpointTwo then if x < editpointThree then pitchThree else self endif else self endif;
+Formula... if x > editpointTwo then if x < editpointThree then pitchThree else self endif else self endif;
+Formula... if x > editpointThree then if x < editpointFour then pitchFour else self endif else self endif;
+Formula... if x > editpointFour then if x < editpointFive then pitchFive else self endif else self endif;
+Formula... if x > editpointFive then if x < editpointSix then pitchSix else self endif else self endif;
+Formula... if x > editpointSix then if x < editpointSeven then pitchSeven else self endif else self endif;
+Formula... if x > editpointSeven then if x < editpointEight then pitchEight else self endif else self endif;
+Formula... if x > editpointEight then if x < editpointNine then pitchNine else self endif else self endif;
+Formula... if x > editpointNine then if x < editpointTen then pitchTen else self endif else self endif;
+Formula... if x > editpointTen then if x < finaleditpoint then pitchEleven else self endif else self endif;
+
+
+select Manipulation 'object_name$'_22050
+plus PitchTier 'object_name$'_22050
+Replace pitch tier
+select Manipulation 'object_name$'_22050
+Get resynthesis (overlap-add)
+
+do("Write to WAV file...", outputFilename$+".wav")
+
+select Sound 'object_name$'_22050
+plus Sound 'object_name$'
+plus Sound 'object_name$'_22050
+plus Manipulation 'object_name$'_22050
+plus PitchTier 'object_name$'_22050
+Remove
+
+
+select all
+Remove
+
+clearinfo
+# print All files processed!
